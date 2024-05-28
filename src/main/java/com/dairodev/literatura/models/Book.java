@@ -1,11 +1,23 @@
 package com.dairodev.literatura.models;
 
-import java.util.List;
+import jakarta.persistence.*;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Entity(name = "books")
 public class Book {
+    @Id
     private int id;
     private String title;
-    private List<Author> authors;
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "books_authors",
+            joinColumns = @JoinColumn(name = "id"),
+            inverseJoinColumns = @JoinColumn(name = "name")
+    )
+    private Set<Author> authors;
     private String languages;
     private int downloadCount;
 
@@ -15,7 +27,11 @@ public class Book {
     public Book(BookData bookData) {
         this.id = bookData.id();
         this.title = bookData.title();
-        this.authors = bookData.authors().stream().map(authorData -> new Author(authorData)).toList();
+        this.authors = bookData
+                .authors()
+                .stream()
+                .map(authorData -> new Author(authorData))
+                .collect(Collectors.toSet());
         this.languages = String.join(",", bookData.languages());
         this.downloadCount = bookData.downloadCount();
     }
@@ -36,11 +52,11 @@ public class Book {
         this.title = title;
     }
 
-    public List<Author> getAuthors() {
+    public Set<Author> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(List<Author> authors) {
+    public void setAuthors(Set<Author> authors) {
         this.authors = authors;
     }
 
